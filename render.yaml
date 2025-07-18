@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: flightbot
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SLACK_BOT_TOKEN
+        sync: false
+      - key: SLACK_SIGNING_SECRET
+        sync: false
+      - key: SLACK_APP_TOKEN
+        sync: false
+      - key: AVIATIONSTACK_API_KEY
+        sync: false
+      - key: PORT
+        value: 10000
