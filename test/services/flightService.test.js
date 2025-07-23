@@ -68,20 +68,43 @@ describe('FlightService', () => {
   });
 
   describe('Update message generation', () => {
-    const mockFlight = {
+    const mockCommercialFlight = {
       flight: {
         iata: 'UA400',
         icao: 'UAL400'
       },
-      flight_status: 'active'
+      flight_status: 'active',
+      airline: {
+        name: 'United Airlines'
+      }
     };
 
-    test('should generate correct update messages', () => {
-      expect(flightService.getUpdateMessage(mockFlight, 'active')).toBe('✈️ *Flight UA400* is now airborne!');
-      expect(flightService.getUpdateMessage(mockFlight, 'landed')).toBe('🛬 *Flight UA400* has landed safely.');
-      expect(flightService.getUpdateMessage(mockFlight, 'cancelled')).toBe('❌ *Flight UA400* has been cancelled.');
-      expect(flightService.getUpdateMessage(mockFlight, 'diverted')).toBe('🔄 *Flight UA400* has been diverted.');
-      expect(flightService.getUpdateMessage(mockFlight, 'incident')).toBe('⚠️ *Flight UA400* has reported an incident.');
+    const mockPrivateFlight = {
+      flight: {
+        iata: 'N123AB',
+        icao: 'N123AB',
+        number: 'N123AB'
+      },
+      flight_status: 'active',
+      aircraft: {
+        registration: 'N123AB'
+      }
+    };
+
+    test('should generate correct update messages for commercial flights', () => {
+      expect(flightService.getUpdateMessage(mockCommercialFlight, 'active')).toBe('✈️ *Flight UA400* is now airborne!');
+      expect(flightService.getUpdateMessage(mockCommercialFlight, 'landed')).toBe('🛬 *Flight UA400* has landed safely.');
+      expect(flightService.getUpdateMessage(mockCommercialFlight, 'cancelled')).toBe('❌ *Flight UA400* has been cancelled.');
+      expect(flightService.getUpdateMessage(mockCommercialFlight, 'diverted')).toBe('🔄 *Flight UA400* has been diverted.');
+      expect(flightService.getUpdateMessage(mockCommercialFlight, 'incident')).toBe('⚠️ *Flight UA400* has reported an incident.');
+    });
+
+    test('should generate correct update messages for private aviation', () => {
+      expect(flightService.getUpdateMessage(mockPrivateFlight, 'active')).toBe('✈️ *N123AB* is now airborne!');
+      expect(flightService.getUpdateMessage(mockPrivateFlight, 'landed')).toBe('🛬 *N123AB* has landed safely.');
+      expect(flightService.getUpdateMessage(mockPrivateFlight, 'cancelled')).toBe('❌ *N123AB* has been cancelled.');
+      expect(flightService.getUpdateMessage(mockPrivateFlight, 'diverted')).toBe('🔄 *N123AB* has been diverted.');
+      expect(flightService.getUpdateMessage(mockPrivateFlight, 'incident')).toBe('⚠️ *N123AB* has reported an incident.');
     });
   });
 

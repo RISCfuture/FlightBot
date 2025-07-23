@@ -185,15 +185,37 @@ class FlightService {
 
   formatFlightMessage(flight, searchedIdentifier = null) {
     const flightNumber = flight.flight.iata || flight.flight.icao || flight.flight.number || 'Unknown';
-    const airline = flight.airline?.name || 'Unknown Airline';
-    const departure = flight.departure?.airport || 'Unknown';
-    const arrival = flight.arrival?.airport || 'Unknown';
+    const airline = flight.airline?.name;
+    const isPrivateAviation = !airline || airline === 'Unknown Airline';
+    const isSearchedByTail = searchedIdentifier && this.isTailNumber(searchedIdentifier);
+    
+    // For private aviation, use tail number or callsign instead of "Flight"
+    let displayTitle;
+    if (isPrivateAviation && flight.aircraft?.registration) {
+      displayTitle = flight.aircraft.registration;
+    } else if (isPrivateAviation && isSearchedByTail) {
+      displayTitle = searchedIdentifier.toUpperCase();
+    } else if (isPrivateAviation) {
+      displayTitle = flightNumber;
+    } else {
+      displayTitle = `Flight ${flightNumber}`;
+    }
+    
     const status = this.getStatusEmoji(flight.flight_status) + ' ' + this.formatStatus(flight.flight_status);
     
-    const departureTime = flight.departure?.scheduled ? 
-      new Date(flight.departure.scheduled).toLocaleString() : 'Unknown';
-    const arrivalTime = flight.arrival?.scheduled ? 
-      new Date(flight.arrival.scheduled).toLocaleString() : 'Unknown';
+    // Build header - only show airline for commercial flights
+    let headerText = `*${displayTitle}*`;
+    if (!isPrivateAviation) {
+      headerText += ` - ${airline}`;
+    }
+    headerText += `\n${status}`;
+    
+    // Enhanced airport information for pilots
+    const departure = this.formatAirportInfo(flight.departure);
+    const arrival = this.formatAirportInfo(flight.arrival);
+    
+    const departureTime = this.formatFlightTime(flight.departure);
+    const arrivalTime = this.formatFlightTime(flight.arrival);
     
     const flightAwareLink = `https://flightaware.com/live/flight/${flightNumber}`;
     const fr24Link = `https://www.flightradar24.com/data/flights/${flightNumber.toLowerCase()}`;
@@ -203,7 +225,7 @@ class FlightService {
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `*Flight ${flightNumber}* - ${airline}\n${status}`
+          text: headerText
         }
       },
       {
@@ -211,23 +233,35 @@ class FlightService {
         fields: [
           {
             type: 'mrkdwn',
-            text: `*From:*\n${departure}\n*Departure:* ${departureTime}`
+            text: `*Departure:*\n${departure}\n*Time:* ${departureTime}`
           },
           {
             type: 'mrkdwn',
-            text: `*To:*\n${arrival}\n*Arrival:* ${arrivalTime}`
+            text: `*Arrival:*\n${arrival}\n*Time:* ${arrivalTime}`
           }
         ]
       }
     ];
 
-    // Add aircraft info if searched by tail number
-    if (searchedIdentifier && this.isTailNumber(searchedIdentifier) && flight.aircraft) {
+    // Aircraft and flight details section
+    const aircraftInfo = this.formatAircraftInfo(flight, searchedIdentifier);
+    if (aircraftInfo) {
       blocks.push({
         type: 'section',
         text: {
           type: 'mrkdwn',
-          text: `✈️ *Aircraft:* ${flight.aircraft.registration || searchedIdentifier} ${flight.aircraft.type ? `(${flight.aircraft.type})` : ''}`
+          text: aircraftInfo
+        }
+      });
+    }
+
+    // Add route information if available
+    if (flight.route) {
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `🗺️ *Route:* ${flight.route}`
         }
       });
     }
@@ -241,6 +275,78 @@ class FlightService {
     });
 
     return blocks;
+  }
+
+  formatAirportInfo(airportData) {
+    if (!airportData) return 'Unknown';
+    
+    const name = airportData.airport || 'Unknown Airport';
+    const icao = airportData.icao;
+    const iata = airportData.iata;
+    
+    // Show ICAO first (pilot preference), then IATA if different
+    let codes = '';
+    if (icao) {
+      codes = icao;
+      if (iata && iata !== icao) {
+        codes += ` / ${iata}`;
+      }
+    } else if (iata) {
+      codes = iata;
+    }
+    
+    return codes ? `${name} (${codes})` : name;
+  }
+
+  formatFlightTime(timeData) {
+    if (!timeData) return 'Unknown';
+    
+    // Prefer actual > estimated > scheduled
+    const time = timeData.actual || timeData.estimated || timeData.scheduled;
+    if (!time) return 'Unknown';
+    
+    const date = new Date(time);
+    const timeString = date.toLocaleString();
+    
+    // Add time type indicator for pilots
+    if (timeData.actual) {
+      return `${timeString} (Actual)`;
+    } else if (timeData.estimated) {
+      return `${timeString} (Est)`;
+    } else {
+      return `${timeString} (Sched)`;
+    }
+  }
+
+  formatAircraftInfo(flight, searchedIdentifier) {
+    const parts = [];
+    
+    // Aircraft registration and type
+    if (flight.aircraft?.registration) {
+      let aircraftText = `✈️ *Aircraft:* ${flight.aircraft.registration}`;
+      if (flight.aircraft.type) {
+        aircraftText += ` (${flight.aircraft.type})`;
+      }
+      parts.push(aircraftText);
+    } else if (searchedIdentifier && this.isTailNumber(searchedIdentifier) && flight.aircraft?.type) {
+      parts.push(`✈️ *Aircraft:* ${searchedIdentifier.toUpperCase()} (${flight.aircraft.type})`);
+    }
+    
+    // Progress information
+    if (flight.progress_percent && flight.progress_percent > 0) {
+      parts.push(`📊 *Progress:* ${flight.progress_percent}%`);
+    }
+    
+    // Flight status indicators
+    const statusIndicators = [];
+    if (flight.cancelled) statusIndicators.push('❌ Cancelled');
+    if (flight.diverted) statusIndicators.push('🔄 Diverted');
+    
+    if (statusIndicators.length > 0) {
+      parts.push(statusIndicators.join(' • '));
+    }
+    
+    return parts.length > 0 ? parts.join('\n') : null;
   }
 
   getStatusEmoji(status) {
@@ -282,28 +388,40 @@ class FlightService {
 
   getUpdateMessage(flight, updateType) {
     const flightNumber = flight.flight.iata || flight.flight.icao || flight.flight.number || 'Unknown';
+    const airline = flight.airline?.name;
+    const isPrivateAviation = !airline || airline === 'Unknown Airline';
     const status = this.getStatusEmoji(flight.flight_status) + ' ' + this.formatStatus(flight.flight_status);
+    
+    // Use appropriate identifier for private vs commercial aviation
+    let displayName;
+    if (isPrivateAviation && flight.aircraft?.registration) {
+      displayName = flight.aircraft.registration;
+    } else if (isPrivateAviation) {
+      displayName = flightNumber;
+    } else {
+      displayName = `Flight ${flightNumber}`;
+    }
     
     let message = '';
     
     switch (updateType) {
       case 'active':
-        message = `✈️ *Flight ${flightNumber}* is now airborne!`;
+        message = `✈️ *${displayName}* is now airborne!`;
         break;
       case 'landed':
-        message = `🛬 *Flight ${flightNumber}* has landed safely.`;
+        message = `🛬 *${displayName}* has landed safely.`;
         break;
       case 'cancelled':
-        message = `❌ *Flight ${flightNumber}* has been cancelled.`;
+        message = `❌ *${displayName}* has been cancelled.`;
         break;
       case 'diverted':
-        message = `🔄 *Flight ${flightNumber}* has been diverted.`;
+        message = `🔄 *${displayName}* has been diverted.`;
         break;
       case 'incident':
-        message = `⚠️ *Flight ${flightNumber}* has reported an incident.`;
+        message = `⚠️ *${displayName}* has reported an incident.`;
         break;
       default:
-        message = `📡 *Flight ${flightNumber}* status update: ${status}`;
+        message = `📡 *${displayName}* status update: ${status}`;
     }
     
     return message;

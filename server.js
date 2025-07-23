@@ -67,8 +67,24 @@ app.command('/flightbot', async ({ command, ack, respond }) => {
       });
     }
 
+    // Create appropriate tracking message for private vs commercial aviation
+    const airline = flight.airline?.name;
+    const isPrivateAviation = !airline || airline === 'Unknown Airline';
+    const isSearchedByTail = flightIdentifier && flightService.isTailNumber(flightIdentifier.replace(/[^A-Z0-9]/gi, ''));
+    
+    let trackingText;
+    if (isPrivateAviation && flight.aircraft?.registration) {
+      trackingText = `✈️ Now tracking *${flight.aircraft.registration}*`;
+    } else if (isPrivateAviation && isSearchedByTail) {
+      trackingText = `✈️ Now tracking *${flightIdentifier.toUpperCase()}*`;
+    } else if (isPrivateAviation) {
+      trackingText = `✈️ Now tracking *${flight.flight.iata || flight.flight.icao || flight.flight.number}*`;
+    } else {
+      trackingText = `✈️ Now tracking flight *${flight.flight.iata || flight.flight.icao}*`;
+    }
+
     await respond({
-      text: `✈️ Now tracking flight *${flight.flight.iata || flight.flight.icao}*`,
+      text: trackingText,
       blocks: responseBlocks,
       response_type: 'in_channel'
     });
