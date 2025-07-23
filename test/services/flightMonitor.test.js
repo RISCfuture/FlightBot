@@ -19,7 +19,10 @@ describe('FlightMonitor', () => {
       getFlightData: jest.fn(),
       shouldSendUpdate: jest.fn(),
       getUpdateMessage: jest.fn(),
-      formatFlightMessage: jest.fn()
+      formatFlightMessage: jest.fn(),
+      canMakeRequest: jest.fn().mockReturnValue(true),
+      shouldLimitTracking: jest.fn().mockReturnValue(false),
+      getApiUsageStatus: jest.fn().mockReturnValue({ status: 'healthy', emoji: '✅' })
     };
 
     flightMonitor = new FlightMonitor(mockSlackApp, mockFlightService);

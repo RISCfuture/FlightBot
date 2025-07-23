@@ -23,6 +23,16 @@ class FlightMonitor {
     const currentTime = new Date();
     const promises = [];
 
+    // Check API usage before making any requests
+    if (!this.flightService.canMakeRequest()) {
+      console.warn('⚠️ API usage limit reached. Pausing flight tracking updates.');
+      return;
+    }
+
+    // If API usage is critical, only check high-priority flights
+    const shouldLimitTracking = this.flightService.shouldLimitTracking();
+    let flightsToCheck = [];
+
     for (const [key, tracking] of this.trackedFlights.entries()) {
       if (tracking.hasLanded && tracking.updateCount > 10) {
         console.log(`Stopping tracking for completed flight ${tracking.identifier}`);
@@ -34,8 +44,21 @@ class FlightMonitor {
       const shouldCheck = timeSinceLastUpdate > 5 * 60 * 1000; // 5 minutes
 
       if (shouldCheck) {
-        promises.push(this.checkSingleFlight(key, tracking));
+        flightsToCheck.push({ key, tracking });
       }
+    }
+
+    // If limiting tracking, only check the most recently started flights
+    if (shouldLimitTracking && flightsToCheck.length > 2) {
+      flightsToCheck = flightsToCheck
+        .sort((a, b) => new Date(b.tracking.lastUpdated) - new Date(a.tracking.lastUpdated))
+        .slice(0, 2);
+      
+      console.warn(`🚨 API usage critical. Only checking ${flightsToCheck.length} most recent flights.`);
+    }
+
+    for (const { key, tracking } of flightsToCheck) {
+      promises.push(this.checkSingleFlight(key, tracking));
     }
 
     if (promises.length > 0) {
@@ -79,19 +102,36 @@ class FlightMonitor {
       const message = this.flightService.getUpdateMessage(flight, updateType);
       const blocks = this.flightService.formatFlightMessage(flight);
 
+      // Check if we should include API usage warning
+      const apiUsage = this.flightService.getApiUsageStatus();
+      const shouldWarn = apiUsage.status === 'warning' || apiUsage.status === 'critical';
+
+      const messageBlocks = [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: message
+          }
+        },
+        ...blocks
+      ];
+
+      // Add API usage warning if needed
+      if (shouldWarn) {
+        messageBlocks.push({
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `${apiUsage.emoji} *API Usage ${apiUsage.status}*: ${apiUsage.used}/${apiUsage.limit} requests (${apiUsage.percentage}%). ${apiUsage.status === 'critical' ? 'Flight tracking may be limited.' : 'Consider limiting new flight tracking.'}`
+          }
+        });
+      }
+
       await this.slackApp.client.chat.postMessage({
         channel: channelId,
         text: message,
-        blocks: [
-          {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: message
-            }
-          },
-          ...blocks
-        ]
+        blocks: messageBlocks
       });
 
       console.log(`Sent update for flight ${flight.flight.iata || flight.flight.icao} to channel ${channelId}`);

@@ -50,9 +50,26 @@ app.command('/flightbot', async ({ command, ack, respond }) => {
 
     flightMonitor.startTracking(trackingInfo);
 
+    // Check if we should include API usage warning
+    const apiUsage = flightService.getApiUsageStatus();
+    const shouldWarn = apiUsage.status === 'warning' || apiUsage.status === 'critical';
+    
+    const responseBlocks = flightService.formatFlightMessage(flight, flightIdentifier);
+    
+    // Add API usage warning if needed
+    if (shouldWarn) {
+      responseBlocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `${apiUsage.emoji} *API Usage ${apiUsage.status}*: ${apiUsage.used}/${apiUsage.limit} requests (${apiUsage.percentage}%). ${apiUsage.status === 'critical' ? 'Flight tracking may be limited.' : 'Monitoring may be reduced to preserve API quota.'}`
+        }
+      });
+    }
+
     await respond({
       text: `✈️ Now tracking flight *${flight.flight.iata || flight.flight.icao}*`,
-      blocks: flightService.formatFlightMessage(flight),
+      blocks: responseBlocks,
       response_type: 'in_channel'
     });
 
@@ -69,6 +86,9 @@ app.command('/flightbot', async ({ command, ack, respond }) => {
       errorMessage = `❌ Service temporarily unavailable. Please try again later.`;
     } else if (error.message.includes('API rate limit exceeded')) {
       errorMessage = `❌ Service busy. Please wait a moment and try again.`;
+    } else if (error.message.includes('API usage limit reached')) {
+      const usageStatus = flightService.getApiUsageStatus();
+      errorMessage = `🚨 *Monthly API limit reached* (${usageStatus.used}/${usageStatus.limit} requests used).\n\nFlight tracking is temporarily unavailable. Usage resets on **${usageStatus.resetsOn}**.`;
     }
     
     await respond({
@@ -76,6 +96,20 @@ app.command('/flightbot', async ({ command, ack, respond }) => {
       response_type: 'ephemeral'
     });
   }
+});
+
+// Admin command to check API usage (hidden from users)
+app.command('/flightbot-status', async ({ command, ack, respond }) => {
+  await ack();
+  
+  const usageStatus = flightService.getApiUsageStatus();
+  const usageMessage = flightService.getApiUsageMessage();
+  const trackedCount = flightMonitor.getTrackedFlightsCount();
+  
+  await respond({
+    text: `📊 *FlightBot Status*\n\n${usageMessage}\n\n✈️ Currently tracking: ${trackedCount} flights`,
+    response_type: 'ephemeral'
+  });
 });
 
 app.error((error) => {
@@ -88,10 +122,19 @@ cron.schedule('*/5 * * * *', () => {
 
 const server = express();
 server.get('/', (req, res) => {
+  const apiUsage = flightService.getApiUsageStatus();
   res.json({ 
     status: 'FlightBot is running!',
     trackedFlights: flightMonitor.getTrackedFlightsCount(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    apiUsage: {
+      used: apiUsage.used,
+      remaining: apiUsage.remaining,
+      limit: apiUsage.limit,
+      percentage: apiUsage.percentage,
+      status: apiUsage.status,
+      resetsOn: apiUsage.resetsOn
+    }
   });
 });
 
