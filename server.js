@@ -1,6 +1,7 @@
 const { App } = require('@slack/bolt');
 const express = require('express');
 const cron = require('node-cron');
+const axios = require('axios');
 require('dotenv').config();
 
 const FlightService = require('./services/flightService');
@@ -18,11 +19,13 @@ const flightService = new FlightService();
 const flightMonitor = new FlightMonitor(app, flightService);
 
 app.command('/flightbot', async ({ command, ack, respond }) => {
+  // Acknowledge immediately to prevent dispatch_failed
   try {
     await ack();
   } catch (ackError) {
     console.error('Failed to acknowledge command:', ackError);
-    throw ackError;
+    // Don't throw here - continue processing even if ack fails
+    // Slack may retry the command if we throw
   }
   
   const flightIdentifier = command.text.trim();
@@ -141,6 +144,19 @@ cron.schedule('*/5 * * * *', () => {
   flightMonitor.checkFlightUpdates();
 });
 
+// Keep-alive ping to prevent Render free tier from spinning down
+if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
+  cron.schedule('*/10 * * * *', async () => {
+    try {
+      const url = `${process.env.RENDER_EXTERNAL_URL}/health`;
+      await axios.get(url, { timeout: 5000 });
+      console.log(`Keep-alive ping sent to ${url}`);
+    } catch (error) {
+      console.error('Keep-alive ping failed:', error.message);
+    }
+  });
+}
+
 const server = express();
 server.get('/', (req, res) => {
   const apiUsage = flightService.getApiUsageStatus();
@@ -172,6 +188,26 @@ server.listen(PORT, '0.0.0.0', () => {
 });
 
 (async () => {
-  await app.start();
-  console.log('⚡️ FlightBot Slack app is running!');
+  try {
+    await app.start();
+    console.log('⚡️ FlightBot Slack app is running!');
+    
+    // Monitor WebSocket connection health
+    if (app.receiver && app.receiver.client) {
+      app.receiver.client.on('disconnected', (error) => {
+        console.error('WebSocket disconnected:', error);
+      });
+      
+      app.receiver.client.on('reconnecting', () => {
+        console.log('WebSocket reconnecting...');
+      });
+      
+      app.receiver.client.on('connected', () => {
+        console.log('WebSocket connected successfully');
+      });
+    }
+  } catch (error) {
+    console.error('Failed to start FlightBot:', error);
+    process.exit(1);
+  }
 })();
