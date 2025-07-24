@@ -18,7 +18,12 @@ const flightService = new FlightService();
 const flightMonitor = new FlightMonitor(app, flightService);
 
 app.command('/flightbot', async ({ command, ack, respond }) => {
-  await ack();
+  try {
+    await ack();
+  } catch (ackError) {
+    console.error('Failed to acknowledge command:', ackError);
+    throw ackError;
+  }
   
   const flightIdentifier = command.text.trim();
   
