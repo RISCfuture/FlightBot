@@ -217,8 +217,15 @@ class FlightService {
     const departureTime = this.formatFlightTime(flight.departure);
     const arrivalTime = this.formatFlightTime(flight.arrival);
     
-    const flightAwareLink = `https://flightaware.com/live/flight/${flightNumber}`;
-    const fr24Link = `https://www.flightradar24.com/data/flights/${flightNumber.toLowerCase()}`;
+    // Check if this is a grounded/unknown status flight
+    const isGrounded = flight.flight_status === 'result unknown' || 
+                      flight.flight_status === 'unknown' ||
+                      (departure === 'Unknown' && arrival === 'Unknown');
+    
+    // Use the registration/tail number for links when available
+    const linkIdentifier = flight.aircraft?.registration || searchedIdentifier || flightNumber;
+    const flightAwareLink = `https://flightaware.com/live/flight/${linkIdentifier}`;
+    const fr24Link = `https://www.flightradar24.com/data/flights/${linkIdentifier.toLowerCase()}`;
 
     const blocks = [
       {
@@ -227,8 +234,12 @@ class FlightService {
           type: 'mrkdwn',
           text: headerText
         }
-      },
-      {
+      }
+    ];
+    
+    // Only show departure/arrival for active flights
+    if (!isGrounded) {
+      blocks.push({
         type: 'section',
         fields: [
           {
@@ -240,8 +251,17 @@ class FlightService {
             text: `*Arrival:*\n${arrival}\n*Time:* ${arrivalTime}`
           }
         ]
-      }
-    ];
+      });
+    } else {
+      // For grounded aircraft, show helpful message
+      blocks.push({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `📍 *Status:* Aircraft is currently not in flight\n\n_Check the tracking links below for flight history and future scheduled flights._`
+        }
+      });
+    }
 
     // Aircraft and flight details section
     const aircraftInfo = this.formatAircraftInfo(flight, searchedIdentifier);
@@ -356,7 +376,9 @@ class FlightService {
       'landed': '🛬',
       'cancelled': '❌',
       'incident': '⚠️',
-      'diverted': '🔄'
+      'diverted': '🔄',
+      'result unknown': '🛩️',
+      'unknown': '🛩️'
     };
     return statusMap[status] || '❓';
   }
@@ -368,7 +390,9 @@ class FlightService {
       'landed': 'Landed',
       'cancelled': 'Cancelled',
       'incident': 'Incident',
-      'diverted': 'Diverted'
+      'diverted': 'Diverted',
+      'result unknown': 'Not Currently Flying',
+      'unknown': 'Status Unknown'
     };
     return statusMap[status] || status;
   }
