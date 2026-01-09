@@ -53,7 +53,7 @@ describe('FlightService', () => {
       expect(flightService.formatStatus('cancelled')).toBe('Cancelled');
       expect(flightService.formatStatus('incident')).toBe('Incident');
       expect(flightService.formatStatus('diverted')).toBe('Diverted');
-      expect(flightService.formatStatus('unknown')).toBe('unknown');
+      expect(flightService.formatStatus('unknown')).toBe('Status Unknown');
     });
 
     test('should get correct status emojis', () => {
@@ -63,7 +63,7 @@ describe('FlightService', () => {
       expect(flightService.getStatusEmoji('cancelled')).toBe('❌');
       expect(flightService.getStatusEmoji('incident')).toBe('⚠️');
       expect(flightService.getStatusEmoji('diverted')).toBe('🔄');
-      expect(flightService.getStatusEmoji('unknown')).toBe('❓');
+      expect(flightService.getStatusEmoji('unknown')).toBe('🛩️');
     });
   });
 
