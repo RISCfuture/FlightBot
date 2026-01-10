@@ -2,9 +2,10 @@ services:
   - type: web
     name: flightbot
     env: node
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: yarn install --immutable && yarn build
+    startCommand: yarn start
     plan: free
+    branch: main
     envVars:
       - key: NODE_ENV
         value: production
@@ -14,7 +15,9 @@ services:
         sync: false
       - key: SLACK_APP_TOKEN
         sync: false
-      - key: AVIATIONSTACK_API_KEY
+      - key: FLIGHTAWARE_API_KEY
+        sync: false
+      - key: SENTRY_DSN
         sync: false
       - key: PORT
         value: 10000
