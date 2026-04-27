@@ -1,12 +1,15 @@
 import { describe, test, expect, beforeEach, vi, type MockedObject } from 'vitest';
 import { FlightMonitor } from '../../src/services/flightMonitor.js';
+import { TRACKED_FLIGHTS_KEY } from '../../src/services/kvStore.js';
 import type { FlightService } from '../../src/services/flightService.js';
 import type { NormalizedFlight, TrackingInfo, SlackApp } from '../../src/types.js';
+import { FakeKVStore } from '../fakes/fakeKVStore.js';
 
 describe('FlightMonitor', () => {
   let flightMonitor: FlightMonitor;
   let mockSlackApp: SlackApp;
   let mockFlightService: MockedObject<FlightService>;
+  let kvStore: FakeKVStore;
 
   beforeEach(() => {
     mockSlackApp = {
@@ -27,11 +30,12 @@ describe('FlightMonitor', () => {
       getApiUsageStatus: vi.fn().mockReturnValue({ status: 'healthy', emoji: '' }),
     } as unknown as MockedObject<FlightService>;
 
-    flightMonitor = new FlightMonitor(mockSlackApp, mockFlightService);
+    kvStore = new FakeKVStore();
+    flightMonitor = new FlightMonitor(mockSlackApp, mockFlightService, kvStore);
   });
 
   describe('Flight tracking management', () => {
-    test('should start tracking a flight', () => {
+    test('should start tracking a flight', async () => {
       const trackingInfo: TrackingInfo = {
         flight: {
           flight: { iata: 'UA400' },
@@ -42,13 +46,13 @@ describe('FlightMonitor', () => {
         identifier: 'UA400',
       };
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       expect(flightMonitor.getTrackedFlightsCount()).toBe(1);
       expect(flightMonitor.isTracking('UA400', 'C123456')).toBe(true);
     });
 
-    test('should stop tracking a flight', () => {
+    test('should stop tracking a flight', async () => {
       const trackingInfo: TrackingInfo = {
         flight: {
           flight: { iata: 'UA400' },
@@ -59,16 +63,16 @@ describe('FlightMonitor', () => {
         identifier: 'UA400',
       };
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
       expect(flightMonitor.getTrackedFlightsCount()).toBe(1);
 
-      const stopped = flightMonitor.stopTracking('UA400', 'C123456');
+      const stopped = await flightMonitor.stopTracking('UA400', 'C123456');
       expect(stopped).toBe(true);
       expect(flightMonitor.getTrackedFlightsCount()).toBe(0);
       expect(flightMonitor.isTracking('UA400', 'C123456')).toBe(false);
     });
 
-    test('should handle multiple flights in different channels', () => {
+    test('should handle multiple flights in different channels', async () => {
       const trackingInfo1: TrackingInfo = {
         flight: {
           flight: { iata: 'UA400' },
@@ -89,8 +93,8 @@ describe('FlightMonitor', () => {
         identifier: 'DL123',
       };
 
-      flightMonitor.startTracking(trackingInfo1);
-      flightMonitor.startTracking(trackingInfo2);
+      await flightMonitor.startTracking(trackingInfo1);
+      await flightMonitor.startTracking(trackingInfo2);
 
       expect(flightMonitor.getTrackedFlightsCount()).toBe(2);
       expect(flightMonitor.isTracking('UA400', 'C123456')).toBe(true);
@@ -98,7 +102,7 @@ describe('FlightMonitor', () => {
       expect(flightMonitor.isTracking('UA400', 'C789012')).toBe(false);
     });
 
-    test('should handle same flight in different channels', () => {
+    test('should handle same flight in different channels', async () => {
       const trackingInfo1: TrackingInfo = {
         flight: {
           flight: { iata: 'UA400' },
@@ -119,8 +123,8 @@ describe('FlightMonitor', () => {
         identifier: 'UA400',
       };
 
-      flightMonitor.startTracking(trackingInfo1);
-      flightMonitor.startTracking(trackingInfo2);
+      await flightMonitor.startTracking(trackingInfo1);
+      await flightMonitor.startTracking(trackingInfo2);
 
       expect(flightMonitor.getTrackedFlightsCount()).toBe(2);
       expect(flightMonitor.isTracking('UA400', 'C123456')).toBe(true);
@@ -158,7 +162,7 @@ describe('FlightMonitor', () => {
         },
       ]);
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       const key = 'UA400_C123456';
       const tracking = flightMonitor.trackedFlights.get(key);
@@ -196,7 +200,7 @@ describe('FlightMonitor', () => {
       mockFlightService.getFlightData.mockResolvedValue(updatedFlight);
       mockFlightService.shouldSendUpdate.mockReturnValue(false);
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       const key = 'UA400_C123456';
       const tracking = flightMonitor.trackedFlights.get(key);
@@ -222,7 +226,7 @@ describe('FlightMonitor', () => {
         identifier: 'UA400',
       };
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       const key = 'UA400_C123456';
       const tracking = flightMonitor.trackedFlights.get(key);
@@ -249,7 +253,7 @@ describe('FlightMonitor', () => {
 
       mockFlightService.getFlightData.mockRejectedValue(new Error('API Error'));
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       const key = 'UA400_C123456';
       const tracking = flightMonitor.trackedFlights.get(key);
@@ -288,7 +292,7 @@ describe('FlightMonitor', () => {
         new Error('Slack API Error')
       );
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       const key = 'UA400_C123456';
       const tracking = flightMonitor.trackedFlights.get(key);
@@ -315,7 +319,7 @@ describe('FlightMonitor', () => {
         identifier: 'UA400',
       };
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       await flightMonitor.checkFlightUpdates();
 
@@ -339,7 +343,7 @@ describe('FlightMonitor', () => {
       });
       mockFlightService.shouldSendUpdate.mockReturnValue(false);
 
-      flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.startTracking(trackingInfo);
 
       const key = 'UA400_C123456';
       const tracking = flightMonitor.trackedFlights.get(key);
@@ -350,6 +354,154 @@ describe('FlightMonitor', () => {
       await flightMonitor.checkFlightUpdates();
 
       expect(mockFlightService.getFlightData).toHaveBeenCalledWith('UA400');
+    });
+  });
+
+  describe('KV persistence', () => {
+    test('startTracking writes the entry to the KV store', async () => {
+      const trackingInfo: TrackingInfo = {
+        flight: {
+          flight: { iata: 'UA400' },
+          flight_status: 'scheduled',
+        } as NormalizedFlight,
+        channelId: 'C123456',
+        userId: 'U123456',
+        identifier: 'UA400',
+      };
+
+      await flightMonitor.startTracking(trackingInfo);
+
+      const all = await kvStore.hgetall(TRACKED_FLIGHTS_KEY);
+      expect(Object.keys(all)).toEqual(['UA400_C123456']);
+      const persisted = JSON.parse(all.UA400_C123456) as {
+        identifier: string;
+        channelId: string;
+        lastStatus: string;
+        updateCount: number;
+        hasLanded: boolean;
+        lastUpdated: string;
+      };
+      expect(persisted.identifier).toBe('UA400');
+      expect(persisted.channelId).toBe('C123456');
+      expect(persisted.lastStatus).toBe('scheduled');
+      expect(persisted.updateCount).toBe(0);
+      expect(persisted.hasLanded).toBe(false);
+      expect(typeof persisted.lastUpdated).toBe('string');
+    });
+
+    test('stopTracking removes the entry from the KV store', async () => {
+      const trackingInfo: TrackingInfo = {
+        flight: {
+          flight: { iata: 'UA400' },
+          flight_status: 'scheduled',
+        } as NormalizedFlight,
+        channelId: 'C123456',
+        userId: 'U123456',
+        identifier: 'UA400',
+      };
+
+      await flightMonitor.startTracking(trackingInfo);
+      await flightMonitor.stopTracking('UA400', 'C123456');
+
+      const all = await kvStore.hgetall(TRACKED_FLIGHTS_KEY);
+      expect(all).toEqual({});
+    });
+
+    test('checkFlightUpdates removes completed flights from KV store', async () => {
+      const trackingInfo: TrackingInfo = {
+        flight: {
+          flight: { iata: 'UA400' },
+          flight_status: 'landed',
+        } as NormalizedFlight,
+        channelId: 'C123456',
+        userId: 'U123456',
+        identifier: 'UA400',
+      };
+
+      await flightMonitor.startTracking(trackingInfo);
+
+      const tracking = flightMonitor.trackedFlights.get('UA400_C123456');
+      if (tracking) {
+        tracking.hasLanded = true;
+        tracking.updateCount = 15;
+        await kvStore.hset(TRACKED_FLIGHTS_KEY, 'UA400_C123456', JSON.stringify(tracking));
+      }
+
+      await flightMonitor.checkFlightUpdates();
+
+      const all = await kvStore.hgetall(TRACKED_FLIGHTS_KEY);
+      expect(all).toEqual({});
+    });
+
+    test('checkFlightUpdates writes status changes back to KV store', async () => {
+      const trackingInfo: TrackingInfo = {
+        flight: {
+          flight: { iata: 'UA400' },
+          flight_status: 'scheduled',
+        } as NormalizedFlight,
+        channelId: 'C123456',
+        userId: 'U123456',
+        identifier: 'UA400',
+      };
+
+      mockFlightService.getFlightData.mockResolvedValue({
+        flight: { iata: 'UA400' },
+        flight_status: 'active',
+      });
+      mockFlightService.shouldSendUpdate.mockReturnValue(true);
+      mockFlightService.getUpdateMessage.mockReturnValue('msg');
+      mockFlightService.formatFlightMessage.mockReturnValue([]);
+
+      await flightMonitor.startTracking(trackingInfo);
+
+      const tracking = flightMonitor.trackedFlights.get('UA400_C123456');
+      if (tracking) {
+        tracking.lastUpdated = new Date(Date.now() - 10 * 60 * 1000);
+      }
+
+      await flightMonitor.checkFlightUpdates();
+
+      const all = await kvStore.hgetall(TRACKED_FLIGHTS_KEY);
+      const persisted = JSON.parse(all.UA400_C123456) as {
+        lastStatus: string;
+        updateCount: number;
+      };
+      expect(persisted.lastStatus).toBe('active');
+      expect(persisted.updateCount).toBe(1);
+    });
+
+    test('hydrate restores tracked flights from KV store', async () => {
+      const entry = {
+        flight: { flight: { iata: 'UA400' }, flight_status: 'active' },
+        channelId: 'C123456',
+        userId: 'U123456',
+        identifier: 'UA400',
+        lastStatus: 'active',
+        lastUpdated: new Date('2026-04-27T12:00:00Z').toISOString(),
+        updateCount: 3,
+        hasLanded: false,
+      };
+      await kvStore.hset(TRACKED_FLIGHTS_KEY, 'UA400_C123456', JSON.stringify(entry));
+
+      // Fresh instance to confirm hydration is the only source
+      const fresh = new FlightMonitor(mockSlackApp, mockFlightService, kvStore);
+      await fresh.hydrate();
+
+      expect(fresh.getTrackedFlightsCount()).toBe(1);
+      expect(fresh.isTracking('UA400', 'C123456')).toBe(true);
+      const restored = fresh.trackedFlights.get('UA400_C123456');
+      expect(restored?.lastStatus).toBe('active');
+      expect(restored?.updateCount).toBe(3);
+      expect(restored?.lastUpdated).toBeInstanceOf(Date);
+      expect(restored?.lastUpdated.toISOString()).toBe('2026-04-27T12:00:00.000Z');
+    });
+
+    test('hydrate skips malformed entries without throwing', async () => {
+      await kvStore.hset(TRACKED_FLIGHTS_KEY, 'bad_entry', 'not json');
+
+      const fresh = new FlightMonitor(mockSlackApp, mockFlightService, kvStore);
+      await expect(fresh.hydrate()).resolves.toBeUndefined();
+      expect(fresh.getTrackedFlightsCount()).toBe(0);
     });
   });
 });

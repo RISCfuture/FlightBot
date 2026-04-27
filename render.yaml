@@ -1,4 +1,10 @@
 services:
+  - type: keyvalue
+    name: flightbot-kv
+    plan: free
+    region: oregon
+    ipAllowList: []
+
   - type: web
     name: flightbot
     env: node
@@ -26,3 +32,8 @@ services:
           type: web
           name: flightbot
           property: hostUrl
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: flightbot-kv
+          property: connectionString

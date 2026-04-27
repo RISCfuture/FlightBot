@@ -9,6 +9,7 @@ import 'dotenv/config';
 
 import { FlightService } from './services/flightService.js';
 import { FlightMonitor } from './services/flightMonitor.js';
+import { RedisKVStore } from './services/kvStore.js';
 import { metrics } from './metrics.js';
 import { handleFlightbotCommand, handleFlightbotStatusCommand } from './handlers/flightbot.js';
 
@@ -20,8 +21,13 @@ const app = new App({
   port: parseInt(process.env.PORT ?? '3000', 10),
 });
 
+const redisUrl = process.env.REDIS_URL;
+if (!redisUrl) {
+  throw new Error('REDIS_URL is required');
+}
+const kvStore = new RedisKVStore(redisUrl);
 const flightService = new FlightService();
-const flightMonitor = new FlightMonitor(app, flightService);
+const flightMonitor = new FlightMonitor(app, flightService, kvStore);
 const deps = { flightService, flightMonitor };
 
 app.command('/flightbot', async ({ command, ack, respond }) => {
@@ -103,6 +109,7 @@ cron.schedule('*/5 * * * *', () => {
 if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
   const externalUrl = process.env.RENDER_EXTERNAL_URL;
   cron.schedule('*/10 * * * *', async () => {
+    if (flightMonitor.getTrackedFlightsCount() === 0) return;
     try {
       const url = `${externalUrl}/health`;
       await axios.get(url, { timeout: 5000 });
@@ -143,12 +150,16 @@ server.get('/health', (c) => {
 });
 
 const PORT = parseInt(process.env.PORT ?? '3000', 10);
-serve({ fetch: server.fetch, port: PORT, hostname: '0.0.0.0' }, () => {
-  console.log(`FlightBot server is running on port ${String(PORT)}`);
-});
 
 void (async () => {
   try {
+    await kvStore.connect();
+    await flightMonitor.hydrate();
+
+    serve({ fetch: server.fetch, port: PORT, hostname: '0.0.0.0' }, () => {
+      console.log(`FlightBot server is running on port ${String(PORT)}`);
+    });
+
     await app.start();
     console.log('FlightBot Slack app is running!');
   } catch (error) {

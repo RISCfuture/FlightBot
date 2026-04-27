@@ -6,28 +6,50 @@ import type {
   SlackBlock,
 } from '../types.js';
 import type { FlightService } from './flightService.js';
+import { type KVStore, TRACKED_FLIGHTS_KEY } from './kvStore.js';
 
 export class FlightMonitor {
   private slackApp: SlackApp;
   private flightService: FlightService;
+  private kvStore: KVStore;
   public trackedFlights: Map<string, TrackedFlight>;
 
-  constructor(slackApp: SlackApp, flightService: FlightService) {
+  constructor(slackApp: SlackApp, flightService: FlightService, kvStore: KVStore) {
     this.slackApp = slackApp;
     this.flightService = flightService;
+    this.kvStore = kvStore;
     this.trackedFlights = new Map();
   }
 
-  startTracking(trackingInfo: TrackingInfo): void {
+  async hydrate(): Promise<void> {
+    const all = await this.kvStore.hgetall(TRACKED_FLIGHTS_KEY);
+    for (const [key, json] of Object.entries(all)) {
+      try {
+        const parsed = JSON.parse(json) as TrackedFlight & { lastUpdated: string };
+        this.trackedFlights.set(key, {
+          ...parsed,
+          lastUpdated: new Date(parsed.lastUpdated),
+        });
+      } catch (error) {
+        console.error(`Failed to hydrate tracked flight ${key}:`, (error as Error).message);
+      }
+    }
+    console.log(`Hydrated ${String(this.trackedFlights.size)} tracked flight(s) from KV store`);
+  }
+
+  async startTracking(trackingInfo: TrackingInfo): Promise<void> {
     const key = `${trackingInfo.identifier}_${trackingInfo.channelId}`;
 
-    this.trackedFlights.set(key, {
+    const entry: TrackedFlight = {
       ...trackingInfo,
       lastStatus: trackingInfo.flight.flight_status,
       lastUpdated: new Date(),
       updateCount: 0,
       hasLanded: trackingInfo.flight.flight_status === 'landed',
-    });
+    };
+
+    this.trackedFlights.set(key, entry);
+    await this.kvStore.hset(TRACKED_FLIGHTS_KEY, key, JSON.stringify(entry));
 
     console.log(
       `Started tracking flight ${trackingInfo.identifier} in channel ${trackingInfo.channelId}`
@@ -50,6 +72,7 @@ export class FlightMonitor {
       if (tracking.hasLanded && tracking.updateCount > 10) {
         console.log(`Stopping tracking for completed flight ${tracking.identifier}`);
         this.trackedFlights.delete(key);
+        await this.kvStore.hdel(TRACKED_FLIGHTS_KEY, key);
         continue;
       }
 
@@ -105,6 +128,8 @@ export class FlightMonitor {
 
       tracking.lastUpdated = new Date();
       tracking.flight = updatedFlight;
+
+      await this.kvStore.hset(TRACKED_FLIGHTS_KEY, key, JSON.stringify(tracking));
     } catch (error) {
       console.error(`Error checking flight ${tracking.identifier}:`, (error as Error).message);
     }
@@ -164,9 +189,13 @@ export class FlightMonitor {
     return this.trackedFlights.size;
   }
 
-  stopTracking(identifier: string, channelId: string): boolean {
+  async stopTracking(identifier: string, channelId: string): Promise<boolean> {
     const key = `${identifier}_${channelId}`;
-    return this.trackedFlights.delete(key);
+    const existed = this.trackedFlights.delete(key);
+    if (existed) {
+      await this.kvStore.hdel(TRACKED_FLIGHTS_KEY, key);
+    }
+    return existed;
   }
 
   isTracking(identifier: string, channelId: string): boolean {

@@ -59,7 +59,7 @@ export async function handleFlightbotCommand(
       identifier: flightIdentifier,
     };
 
-    flightMonitor.startTracking(trackingInfo);
+    await flightMonitor.startTracking(trackingInfo);
 
     const apiUsage = flightService.getApiUsageStatus();
     const shouldWarn = apiUsage.status === 'warning' || apiUsage.status === 'critical';

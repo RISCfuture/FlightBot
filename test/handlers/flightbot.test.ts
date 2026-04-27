@@ -8,6 +8,7 @@ import {
 import { FlightService } from '../../src/services/flightService.js';
 import { FlightMonitor } from '../../src/services/flightMonitor.js';
 import type { SlackApp } from '../../src/types.js';
+import { FakeKVStore } from '../fakes/fakeKVStore.js';
 
 /**
  * E2E-style tests for FlightBot handlers.
@@ -64,7 +65,7 @@ describe('FlightBot Handlers (E2E-style)', () => {
 
     // Create REAL instances with mocked external deps
     const flightService = new FlightService();
-    const flightMonitor = new FlightMonitor(mockSlackApp, flightService);
+    const flightMonitor = new FlightMonitor(mockSlackApp, flightService, new FakeKVStore());
 
     deps = { flightService, flightMonitor };
   });
@@ -430,7 +431,7 @@ describe('FlightBot Handlers (E2E-style)', () => {
       expect(statusResult.text).toContain('1 flights');
 
       // Step 3: Stop tracking
-      deps.flightMonitor.stopTracking('AA100', 'C123');
+      await deps.flightMonitor.stopTracking('AA100', 'C123');
       expect(deps.flightMonitor.isTracking('AA100', 'C123')).toBe(false);
 
       // Step 4: Verify status reflects stopped tracking

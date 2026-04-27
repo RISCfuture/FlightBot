@@ -15,9 +15,11 @@ export default tseslint.config(
         projectService: {
           allowDefaultProject: [
             'test/setup.ts',
+            'test/fakes/fakeKVStore.ts',
             'test/handlers/flightbot.test.ts',
             'test/integration/commands.test.ts',
             'test/services/apiUsageTracker.test.ts',
+            'test/services/fakeKVStore.test.ts',
             'test/services/flightMonitor.test.ts',
             'test/services/flightService.test.ts',
           ],
