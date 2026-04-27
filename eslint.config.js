@@ -22,7 +22,18 @@ export default tseslint.config(
             'test/services/fakeKVStore.test.ts',
             'test/services/flightMonitor.test.ts',
             'test/services/flightService.test.ts',
+            'test/e2e/setup.ts',
+            'test/e2e/coldStart.test.ts',
+            'test/e2e/slashCommand.test.ts',
+            'test/e2e/cronUpdate.test.ts',
+            'test/e2e/restart.test.ts',
+            'test/e2e/keepalive.test.ts',
+            'test/e2e/helpers/boltTest.ts',
+            'test/e2e/helpers/aeroapi.ts',
+            'test/e2e/helpers/redis.ts',
+            'test/e2e/fixtures/flights.ts',
           ],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 25,
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -34,6 +45,7 @@ export default tseslint.config(
       // Test files use mocks that often involve `any` types
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
       // expect(mock.method).toHaveBeenCalled() patterns require unbound methods
       '@typescript-eslint/unbound-method': 'off',
       // Non-null assertions are sometimes useful in tests for brevity
