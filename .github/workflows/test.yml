@@ -43,7 +43,7 @@ jobs:
           REDIS_TEST_URL: redis://localhost:6379/15
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           file: ./coverage/lcov.info
           fail_ci_if_error: false
