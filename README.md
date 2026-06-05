@@ -19,7 +19,7 @@ A Slack bot that provides real-time flight tracking updates using the AviationSt
 
 ### Prerequisites
 
-- Node.js 18.0.0 or higher
+- Node.js 26.0.0 or higher
 - A Slack workspace with admin privileges
 - AviationStack API key (free tier available)
 
@@ -58,19 +58,19 @@ PORT=3000
 ## Installation
 
 ```bash
-npm install
+pnpm install
 ```
 
 ## Running the Bot
 
 ### Development
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ### Production
 ```bash
-npm start
+pnpm start
 ```
 
 ## Usage
@@ -97,8 +97,8 @@ The bot will:
 3. Create a new Web Service
 4. Select your forked repository
 5. Use the following settings:
-   - Build Command: `npm install`
-   - Start Command: `npm start`
+   - Build Command: `pnpm install && pnpm build`
+   - Start Command: `pnpm start`
    - Environment: `Node`
 6. Add your environment variables in the Render dashboard
 7. Deploy

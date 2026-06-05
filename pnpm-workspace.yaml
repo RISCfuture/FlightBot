@@ -1,0 +1,10 @@
+# pnpm 11 approves dependency build scripts via `allowBuilds` (true/false).
+# `onlyBuiltDependencies` is kept for compatibility with other pnpm 11.x patches.
+allowBuilds:
+  '@sentry-internal/node-cpu-profiler': true
+  '@sentry/cli': true
+  esbuild: true
+onlyBuiltDependencies:
+  - '@sentry-internal/node-cpu-profiler'
+  - '@sentry/cli'
+  - esbuild

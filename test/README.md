@@ -20,22 +20,22 @@ test/
 
 ### Install Dependencies
 ```bash
-npm install
+pnpm install
 ```
 
 ### Run All Tests
 ```bash
-npm test
+pnpm test
 ```
 
 ### Run Tests with Coverage
 ```bash
-npm run test:coverage
+pnpm test:coverage
 ```
 
 ### Run Tests in Watch Mode
 ```bash
-npm run test:watch
+pnpm test:watch
 ```
 
 ### Run Custom Test Suite
@@ -107,30 +107,25 @@ The test suite aims for:
 
 ```bash
 # Run only flight service tests
-npx jest test/services/flightService.test.js
+pnpm vitest run test/services/flightService.test.ts
 
 # Run only flight monitor tests
-npx jest test/services/flightMonitor.test.js
+pnpm vitest run test/services/flightMonitor.test.ts
 
 # Run only integration tests
-npx jest test/integration/slackCommands.test.js
+pnpm vitest run test/integration/slackCommands.test.ts
 ```
 
 ## Debugging Tests
 
 ### Verbose Output
 ```bash
-npm test -- --verbose
+pnpm test --reporter=verbose
 ```
 
 ### Run Specific Test
 ```bash
-npm test -- --testNamePattern="should validate correct flight numbers"
-```
-
-### Debug Mode
-```bash
-npm test -- --detectOpenHandles --forceExit
+pnpm test -t "should validate correct flight numbers"
 ```
 
 ## Test Data

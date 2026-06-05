@@ -20,35 +20,35 @@
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org $SENTRY_ORG --project $SENTRY_PROJECT ./dist && sentry-cli sourcemaps upload --org $SENTRY_ORG --project $SENTRY_PROJECT ./dist"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.8",
-    "@sentry/node": "^10.32.1",
-    "@sentry/profiling-node": "^10.32.1",
-    "@slack/bolt": "^4.6.0",
-    "axios": "^1.13.2",
-    "dotenv": "^17.2.3",
-    "hono": "^4.11.3",
-    "ioredis": "^5.10.1",
+    "@hono/node-server": "^1.19.14",
+    "@sentry/node": "^10.56.0",
+    "@sentry/profiling-node": "^10.56.0",
+    "@slack/bolt": "^4.7.3",
+    "axios": "^1.17.0",
+    "dotenv": "^17.4.2",
+    "hono": "^4.12.23",
+    "ioredis": "^5.11.0",
     "node-cron": "^4.2.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@sentry/cli": "^3.0.3",
-    "@types/node": "^25.0.3",
+    "@eslint/js": "^9.39.4",
+    "@sentry/cli": "^3.5.0",
+    "@types/node": "^25.9.1",
     "@types/node-cron": "^3.0.11",
-    "@vitest/coverage-v8": "^4.0.16",
-    "eslint": "^9.39.2",
-    "nock": "^14.0.13",
-    "nodemon": "^3.1.11",
-    "prettier": "^3.7.4",
+    "@vitest/coverage-v8": "^4.1.8",
+    "eslint": "^9.39.4",
+    "nock": "^14.0.15",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.3",
     "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.52.0",
-    "vitest": "^4.0.16"
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^4.1.8"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=26.0.0"
   },
   "keywords": [
     "slack",
@@ -60,5 +60,5 @@
   "author": "Flight Bot",
   "license": "MIT",
   "type": "module",
-  "packageManager": "yarn@4.12.0"
+  "packageManager": "pnpm@11.5.1"
 }

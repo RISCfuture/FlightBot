@@ -40,7 +40,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -57,7 +57,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -77,7 +77,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -87,7 +87,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'DL123' },
           flight_status: 'active',
-        } as NormalizedFlight,
+        },
         channelId: 'C789012',
         userId: 'U789012',
         identifier: 'DL123',
@@ -107,7 +107,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -117,7 +117,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C789012',
         userId: 'U789012',
         identifier: 'UA400',
@@ -138,7 +138,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -186,7 +186,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -220,7 +220,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'landed',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -245,7 +245,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -273,7 +273,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -313,7 +313,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -331,7 +331,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -363,7 +363,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -394,7 +394,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -412,7 +412,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'landed',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',
@@ -438,7 +438,7 @@ describe('FlightMonitor', () => {
         flight: {
           flight: { iata: 'UA400' },
           flight_status: 'scheduled',
-        } as NormalizedFlight,
+        },
         channelId: 'C123456',
         userId: 'U123456',
         identifier: 'UA400',

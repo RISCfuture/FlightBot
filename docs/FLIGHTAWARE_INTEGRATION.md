@@ -183,7 +183,7 @@ Arrival: 7/25/2025, 10:34:00 PM
 Run the test suite to verify FlightAware integration:
 
 ```bash
-npm test
+pnpm test
 ```
 
 The tests include:

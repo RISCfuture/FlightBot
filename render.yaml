@@ -1,18 +1,20 @@
 services:
   - type: keyvalue
-    name: flightbot-kv
+    name: flightbot-redis
     plan: free
     region: oregon
     ipAllowList: []
 
   - type: web
-    name: flightbot
+    name: FlightBot
     env: node
-    buildCommand: yarn install --immutable && yarn build
-    startCommand: yarn start
+    buildCommand: pnpm install --frozen-lockfile && pnpm run build
+    startCommand: pnpm start
     plan: free
     branch: main
     envVars:
+      - key: NODE_VERSION
+        value: 26.3.0
       - key: NODE_ENV
         value: production
       - key: SLACK_BOT_TOKEN
@@ -23,17 +25,14 @@ services:
         sync: false
       - key: FLIGHTAWARE_API_KEY
         sync: false
+      - key: AVIATIONSTACK_API_KEY
+        sync: false
       - key: SENTRY_DSN
         sync: false
       - key: PORT
         value: 10000
-      - key: RENDER_EXTERNAL_URL
-        fromService:
-          type: web
-          name: flightbot
-          property: hostUrl
       - key: REDIS_URL
         fromService:
           type: keyvalue
-          name: flightbot-kv
+          name: flightbot-redis
           property: connectionString
