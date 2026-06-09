@@ -64,11 +64,13 @@ pnpm install
 ## Running the Bot
 
 ### Development
+
 ```bash
 pnpm dev
 ```
 
 ### Production
+
 ```bash
 pnpm start
 ```
@@ -77,13 +79,14 @@ pnpm start
 
 In any Slack channel where the bot is installed, use:
 
-```
+```text
 /flightbot UA400
 /flightbot N300DG
 /flightbot delta1234
 ```
 
 The bot will:
+
 1. Validate the flight identifier
 2. Fetch current flight information
 3. Start monitoring the flight for status changes
@@ -114,7 +117,7 @@ The `render.yaml` file is included for easy deployment configuration.
 
 ## File Structure
 
-```
+```text
 flightbot/
 ├── server.js              # Main application server
 ├── services/
@@ -129,6 +132,7 @@ flightbot/
 ## Error Handling
 
 The bot handles various error scenarios:
+
 - Invalid flight number formats
 - Flight not found
 - API authentication failures

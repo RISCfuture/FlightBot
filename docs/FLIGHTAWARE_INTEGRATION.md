@@ -13,12 +13,14 @@ FlightBot now uses FlightAware's AeroAPI v4 for superior flight tracking data qu
 ## API Configuration
 
 ### Environment Variables
+
 ```env
 FLIGHTAWARE_API_KEY=your-api-key-here
 API_MONTHLY_LIMIT=1000
 ```
 
 ### API Limits
+
 - Default: 1000 requests/month (configurable)
 - Can be adjusted based on your FlightAware plan
 - Professional plans offer much higher limits
@@ -26,14 +28,16 @@ API_MONTHLY_LIMIT=1000
 ## Supported Flight Searches
 
 ### Flight Numbers
-```
+
+```text
 /flightbot UA400
 /flightbot DL1234
 /flightbot AA123
 ```
 
 ### Aircraft Tail Numbers
-```
+
+```text
 /flightbot N300DG
 /flightbot N123AB
 /flightbot G-ABCD
@@ -42,6 +46,7 @@ API_MONTHLY_LIMIT=1000
 ## Enhanced Data Features
 
 ### Rich Flight Information
+
 - **Aircraft Details**: Registration, type (e.g., B38M, A320)
 - **Gate Information**: Departure and arrival gates
 - **Terminal Data**: Terminal assignments
@@ -50,6 +55,7 @@ API_MONTHLY_LIMIT=1000
 - **Timing Data**: Scheduled, estimated, and actual times
 
 ### Example Response
+
 ```json
 {
   "flight": {
@@ -105,11 +111,13 @@ FlightAware uses different status values than other APIs:
 ## API Endpoints Used
 
 ### Flight Search
+
 - **Endpoint**: `/flights/{flight_number}`
 - **Example**: `/flights/UA400`
 - **Returns**: Multiple flights for that identifier
 
 ### Aircraft Search  
+
 - **Primary**: `/flights/{tail_number}`
 - **Fallback**: `/aircraft/{tail_number}/flights`
 - **Example**: `/flights/N300DG`
@@ -117,22 +125,26 @@ FlightAware uses different status values than other APIs:
 ## Error Handling
 
 ### Authentication Errors
-```
+
+```text
 ❌ API authentication failed
 ```
 
 ### Rate Limiting
-```
+
+```text
 ❌ API rate limit exceeded
 ```
 
 ### Invalid Flight Format
-```
+
+```text
 ❌ Invalid format. Please use a flight number (e.g., "UA400") or tail number (e.g., "N300DG").
 ```
 
 ### Flight Not Found
-```
+
+```text
 ❌ Flight "ZZ9999" not found. Please check the flight number or tail number and try again.
 ```
 
@@ -147,13 +159,15 @@ The bot tracks API usage to prevent exceeding your FlightAware plan limits:
 ## Message Formatting
 
 ### Enhanced Display
+
 - **Aircraft Information**: Shows registration and type for tail number searches
 - **Gate/Terminal Data**: Displays when available
 - **Progress Updates**: Shows flight progress percentage
 - **FlightAware Links**: Direct links to detailed tracking
 
 ### Example Slack Message
-```
+
+```text
 ✈️ Flight UA400 - UAL
 🕐 Scheduled
 
@@ -187,6 +201,7 @@ pnpm test
 ```
 
 The tests include:
+
 - Real API calls with your FlightAware key
 - Flight number validation
 - Tail number searches
