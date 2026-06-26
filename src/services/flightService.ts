@@ -66,10 +66,10 @@ export class FlightService {
     } catch (error) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 401) {
-        throw new Error('API authentication failed');
+        throw new Error('API authentication failed', { cause: error });
       }
       if (axiosError.response?.status === 429) {
-        throw new Error('API rate limit exceeded');
+        throw new Error('API rate limit exceeded', { cause: error });
       }
       console.error('Error fetching flight data:', (error as Error).message);
       throw error;
@@ -438,7 +438,7 @@ export class FlightService {
       displayName = `Flight ${flightNumber}`;
     }
 
-    let message = '';
+    let message: string;
 
     switch (updateType) {
       case 'active':

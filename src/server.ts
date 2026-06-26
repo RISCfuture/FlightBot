@@ -2,7 +2,7 @@ import './instrument.js';
 import { App } from '@slack/bolt';
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
-import cron from 'node-cron';
+import cron, { type ScheduledTask } from 'node-cron';
 import axios from 'axios';
 import * as Sentry from '@sentry/node';
 import 'dotenv/config';
@@ -28,7 +28,7 @@ export interface AppHandles {
   flightService: FlightService;
   flightMonitor: FlightMonitor;
   honoServer: ReturnType<typeof serve> | null;
-  cronTasks: cron.ScheduledTask[];
+  cronTasks: ScheduledTask[];
   keepalivePing: () => Promise<void>;
   shutdown: () => Promise<void>;
 }
@@ -139,7 +139,7 @@ export async function startApp(config: StartConfig = {}): Promise<AppHandles> {
     }
   };
 
-  const cronTasks: cron.ScheduledTask[] = [];
+  const cronTasks: ScheduledTask[] = [];
   const enableCrons = config.enableCrons ?? true;
   if (enableCrons) {
     cronTasks.push(
