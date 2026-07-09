@@ -1,6 +1,7 @@
 node_modules/
 dist/
 .env*
+!.env.example
 *.log
 npm-debug.log*
 pnpm-debug.log*
@@ -9,3 +10,4 @@ coverage/
 
 # Project data
 data/
+.claude/settings.local.json
