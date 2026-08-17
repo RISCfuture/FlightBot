@@ -6,6 +6,18 @@ import type { ApiUsageStatus, UsageData, ApiRequest } from '../types.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/**
+ * Formats a date as `YYYY-MM-DD` in the local time zone.
+ *
+ * Usage months are tracked in local time, so the quota's reset date has to be rendered in local
+ * time too. `toISOString()` would convert to UTC first and report the previous day east of UTC.
+ */
+function toLocalDateString(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${String(date.getFullYear())}-${month}-${day}`;
+}
+
 export class ApiUsageTracker {
   private usageFile: string;
   private monthlyLimit: number;
@@ -152,8 +164,7 @@ export class ApiUsageTracker {
 
   private getNextResetDate(): string {
     const now = new Date();
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    return nextMonth.toISOString().split('T')[0];
+    return toLocalDateString(new Date(now.getFullYear(), now.getMonth() + 1, 1));
   }
 
   shouldLimitTracking(): boolean {
