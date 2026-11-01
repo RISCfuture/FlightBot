@@ -6,11 +6,10 @@ Sentry.init({
   environment: process.env.NODE_ENV ?? 'development',
   release: process.env.RENDER_GIT_COMMIT ?? 'local',
   integrations: [nodeProfilingIntegration()],
-  enableLogs: true,
+
   tracesSampleRate: 1.0,
   profileSessionSampleRate: 1.0,
   profileLifecycle: 'trace',
-  sendDefaultPii: true,
 });
 
 export { Sentry };

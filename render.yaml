@@ -7,14 +7,14 @@ services:
 
   - type: web
     name: FlightBot
-    env: node
+    runtime: node
     buildCommand: pnpm install --frozen-lockfile && pnpm run build
     startCommand: pnpm start
     plan: free
     branch: main
     envVars:
       - key: NODE_VERSION
-        value: 26.7.0
+        value: 26.13.0
       - key: NODE_ENV
         value: production
       - key: SLACK_BOT_TOKEN

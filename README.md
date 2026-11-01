@@ -19,7 +19,7 @@ A Slack bot that provides real-time flight tracking updates using the AviationSt
 
 ### Prerequisites
 
-- Node.js 26.0.0 or higher
+- Node.js 26.13.0 or higher
 - A Slack workspace with admin privileges
 - AviationStack API key (free tier available)
 
