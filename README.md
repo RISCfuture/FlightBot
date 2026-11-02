@@ -1,6 +1,6 @@
 # FlightBot - Slack Flight Tracker
 
-A Slack bot that provides real-time flight tracking updates using the AviationStack API. Users can track flights by flight number or aircraft tail number and receive automated updates about flight status changes.
+A Slack bot that provides real-time flight tracking updates using FlightAware AeroAPI. Users can track flights by flight number or aircraft tail number and receive automated updates about flight status changes.
 
 ## Features
 
@@ -21,7 +21,7 @@ A Slack bot that provides real-time flight tracking updates using the AviationSt
 
 - Node.js 26.13.0 or higher
 - A Slack workspace with admin privileges
-- AviationStack API key (free tier available)
+- FlightAware AeroAPI key
 
 ### Environment Variables
 
@@ -31,7 +31,7 @@ Copy `.env.example` to `.env` and fill in the required values:
 SLACK_BOT_TOKEN=xoxb-your-bot-token-here
 SLACK_SIGNING_SECRET=your-signing-secret-here
 SLACK_APP_TOKEN=xapp-your-app-token-here
-AVIATIONSTACK_API_KEY=your-aviationstack-api-key-here
+FLIGHTAWARE_API_KEY=your-flightaware-api-key-here
 PORT=3000
 ```
 
@@ -49,11 +49,10 @@ PORT=3000
    - Usage Hint: "UA400 or N300DG"
 5. Install the app to your workspace
 
-### AviationStack API Setup
+### FlightAware API Setup
 
-1. Sign up at [AviationStack](https://aviationstack.com/)
-2. Get your free API key (100 requests/month)
-3. Add the API key to your environment variables
+1. Get an API key from [FlightAware AeroAPI](https://www.flightaware.com/aeroapi/)
+2. Set `FLIGHTAWARE_API_KEY` in your ignored `.env` file or deployment environment
 
 ## Installation
 
@@ -110,7 +109,7 @@ The `render.yaml` file is included for easy deployment configuration.
 
 ## API Rate Limits
 
-- AviationStack Free Tier: 100 requests/month
+- Set `API_MONTHLY_LIMIT` to your request budget (default: 1000 requests/month)
 - Bot checks for flight updates every 5 minutes
 - Each tracked flight uses ~1 request per update check
 - Plan accordingly based on your usage

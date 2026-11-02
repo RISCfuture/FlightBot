@@ -1,6 +1,6 @@
 # API Usage Management
 
-FlightBot includes comprehensive API usage tracking to manage the AviationStack free tier limit of 100 requests per month.
+FlightBot tracks FlightAware AeroAPI requests against the monthly budget set by `API_MONTHLY_LIMIT` (default: 1000 requests). The examples below use a 100-request budget.
 
 ## Features
 
@@ -125,7 +125,7 @@ Visit `https://your-app.onrender.com/` for JSON status:
 
 - Monitor usage via `/flightbot-status` command
 - Watch server logs for usage warnings
-- Consider upgrading to paid AviationStack plan for heavy usage
+- Choose a FlightAware AeroAPI plan and request budget appropriate for your usage
 
 ## Technical Details
 

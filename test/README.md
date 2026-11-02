@@ -7,12 +7,11 @@ This directory contains comprehensive tests for the FlightBot application.
 ```text
 test/
 ├── services/
-│   ├── flightService.test.js    # Tests for flight API integration
-│   └── flightMonitor.test.js    # Tests for flight tracking logic
+│   ├── flightService.test.ts    # Tests for flight API integration
+│   └── flightMonitor.test.ts    # Tests for flight tracking logic
 ├── integration/
-│   └── slackCommands.test.js    # Integration tests for Slack commands
-├── setup.js                    # Test configuration and setup
-├── testRunner.js               # Custom test runner script
+│   └── commands.test.ts    # Integration tests for Slack commands
+├── setup.ts                    # Test configuration and setup
 └── README.md                   # This file
 ```
 
@@ -42,23 +41,17 @@ pnpm test:coverage
 pnpm test:watch
 ```
 
-### Run Custom Test Suite
-
-```bash
-node test/testRunner.js
-```
-
 ## Test Categories
 
-### 1. Flight Service Tests (`services/flightService.test.js`)
+### 1. Flight Service Tests (`services/flightService.test.ts`)
 
 - **Input Validation**: Tests for flight number and tail number validation
 - **Status Formatting**: Tests for status display and emoji mapping
 - **Message Formatting**: Tests for Slack message block formatting
-- **API Integration**: Tests for real API calls using your AviationStack key
+- **API Integration**: Tests for FlightAware lookups using mocked API responses
 - **Error Handling**: Tests for various error scenarios
 
-### 2. Flight Monitor Tests (`services/flightMonitor.test.js`)
+### 2. Flight Monitor Tests (`services/flightMonitor.test.ts`)
 
 - **Tracking Management**: Tests for starting/stopping flight tracking
 - **Multi-channel Support**: Tests for tracking flights across channels
@@ -66,7 +59,7 @@ node test/testRunner.js
 - **Error Handling**: Tests for API and Slack errors
 - **Update Frequency**: Tests for update timing logic
 
-### 3. Slack Integration Tests (`integration/slackCommands.test.js`)
+### 3. Slack Integration Tests (`integration/commands.test.ts`)
 
 - **Command Validation**: Tests for input validation
 - **Response Format**: Tests for proper Slack message format
@@ -77,26 +70,19 @@ node test/testRunner.js
 
 ### Environment Variables
 
-Tests use `.env.test` file with your actual AviationStack API key for real API testing.
+The test setup loads optional local values from the ignored `.env` file. Unit and integration tests mock provider requests and require no real provider credentials.
 
 ### Mock Strategy
 
-- Unit tests mock external dependencies (Slack API, etc.)
-- Integration tests use real API calls where beneficial
-- Service tests include both mocked and real API scenarios
+- Service tests mock FlightAware requests through Axios.
+- Command integration tests inject fake flight services and Slack clients.
+- End-to-end tests mock FlightAware HTTP responses and use a dedicated Redis test database.
 
-## Real API Tests
+## API Integration Tests
 
-The test suite includes real API calls to AviationStack using your provided key:
+Flight lookup tests use mocked FlightAware responses for successful lookups, authentication failures, and rate limits. End-to-end setup supplies dummy credentials and blocks external HTTP requests.
 
-- `7fa2b56e5c0ca29401498f5b2b181125`
-
-These tests will:
-
-- ✅ Test actual flight data retrieval
-- ✅ Validate API response format
-- ✅ Test error handling with real API errors
-- ✅ Verify flight number and tail number lookups
+End-to-end tests run with `pnpm test:e2e` when `REDIS_TEST_URL` points to a dedicated Redis database with a nonzero database index. The suite flushes that database during setup and skips when the variable is unset.
 
 ## Test Output
 
@@ -127,7 +113,7 @@ pnpm vitest run test/services/flightService.test.ts
 pnpm vitest run test/services/flightMonitor.test.ts
 
 # Run only integration tests
-pnpm vitest run test/integration/slackCommands.test.ts
+pnpm vitest run test/integration/commands.test.ts
 ```
 
 ## Debugging Tests
